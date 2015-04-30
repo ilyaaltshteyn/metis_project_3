@@ -1,0 +1,17 @@
+CREATE TABLE census_income_data(index int,
+age int,
+workclass varchar(100),
+fnlwgt int,
+education varchar(100),
+education_num int,
+marital_status varchar(100),
+occupation varchar(100),
+relationship varchar(100),
+race varchar(100),
+sex varchar(100),
+capital_gain int,
+capital_loss int,
+hours_per_week int,
+native_country varchar(100),
+inc_categorical varchar(100)
+);
