@@ -27,5 +27,3 @@ print data.occupation.unique()
 
 data.to_csv('/Users/ilya/metis/week4/metis_project_3/analysis/clean_data.csv')
 
-
-
