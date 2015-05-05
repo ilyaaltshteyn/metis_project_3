@@ -27,5 +27,10 @@ y_test = data_test[data_test.columns[-1]]
 svm = SVC()
 svm.fit(x_train, y_train)
 
+#Pickle model for later:
+import pickle
+with open('/Users/ilya/metis/week4/metis_project_3/temp_pickle_file.pkl', 
+    'w') as out:
+    pickle.dump(svm, out)
 
 # EVALUATE MODEL:
