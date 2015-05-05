@@ -28,6 +28,7 @@ data_dummied = data_dummied.drop(data_dummied.columns[-2], axis = 1)
 x = data_dummied.ix[:,:-1]
 y = data_dummied[data_dummied.columns[-1]]
 
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = .25)
 # Select several features to use. Can't use all of them bc many are categorical
 # and have many categories.
 
@@ -38,42 +39,16 @@ y = data_dummied[data_dummied.columns[-1]]
 # most relevant measure for identifying who has which income.
 
 param_grid = [
-  {'C': [.001, .01, .1, 1, 10, 100, 1000], 'kernel': ['linear']},
-  {'C': [.01, .1, 1, 10, 100], 'gamma': [0.001, 0.0001], 'kernel': ['rbf']},
+  {'C': [.001, .01, .1, 1, 10], 'kernel': ['linear']},
+  {'C': [.01, .1, 1, 10], 'gamma': [0.001, 0.0001], 'kernel': ['rbf']},
  ]
 
 svm1 = SVC()
-svm1_accuracy = GridSearchCV(SVC(), param_grid, cv = 5, scoring = accuracy)
+svm1_grid = GridSearchCV(SVC(), param_grid, cv = 3, scoring = 'accuracy',
+    verbose = 10)
+svm1_grid.fit(x_train, y_train)
+print svm1_grid.best_params_
 
-#Sklearn has a grid search function
-svm1 = SVC(C = 100)
-svm1 = np.mean(cross_val_score(svm1, x, y, cv = 5,
-    scoring = "accuracy", verbose = 10))
-
-svm2 = SVC(C = 10)
-svm2_scores = np.mean(cross_val_score(svm2, x, y, cv = 5,
-    scoring = "accuracy", verbose = 10))
-
-svm3 = SVC(C = 1)
-svm3_scores = np.mean(cross_val_score(svm3, x, y, cv = 5,
-    scoring = "accuracy", verbose = 10))
-
-svm4 = SVC(C = .1)
-svm4_scores = np.mean(cross_val_score(svm3, x, y, cv = 5,
-    scoring = "accuracy", verbose = 10))
-
-svm5 = SVC(C = .01)
-svm5_scores = np.mean(cross_val_score(svm3, x, y, cv = 5,
-    scoring = "accuracy", verbose = 10))
-
-svm6 = SVC(C = .001)
-svm6_scores = np.mean(cross_val_score(svm3, x, y, cv = 5,
-    scoring = "accuracy", verbose = 10))
-
-
-# Strategy pt2-- Vary kernel and C statistic parameters to find optimal hyperparameters.
-# Return cross-validated scores. The kernel is for transforming your data into
-# other dimensions. The 
 
 
 
