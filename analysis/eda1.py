@@ -13,10 +13,12 @@ print data.describe()
 data = data[data.age >= 18]
 
 sns.barplot(data.income_cat)
+plt.title('Breakdown of income categories in dataset')
 plt.show()
 data = data[data.income_cat != 14]
 
 sns.barplot(data.sex)
+plt.title('Breakdown of sex categories in dataset')
 plt.show()
 
 # Print out unique values of categorical columns to look for nonsense:
@@ -25,5 +27,7 @@ print data.workclass.unique()
 print data.marital_status.unique()
 print data.occupation.unique()
 
-data.to_csv('/Users/ilya/metis/week4/metis_project_3/analysis/clean_data.csv')
+print data.describe()
+data.to_csv('/Users/ilya/metis/week4/metis_project_3/analysis/clean_data.csv',
+    index = False, header = True)
 
