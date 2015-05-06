@@ -1,5 +1,6 @@
-# This script runs an SVM on the income data. It varies the SVM hyperparameters 
-# and tests their various combinations using cross validation.
+# This script runs a bunch of classifiers on the income data. It varies the 
+# classifiers' hyperparameters and tests their various combinations using cross 
+# validation. Then it compares their predictions by plotting ROC curves.
 
 import pandas as pd
 import numpy as np
@@ -11,6 +12,7 @@ from sklearn.learning_curve import learning_curve
 from sklearn.cross_validation import cross_val_score
 from sklearn.cross_validation import train_test_split
 from sklearn.grid_search import GridSearchCV
+from sklearn.neighbors import KNeighborsClassifier
 
 # PREPARE DATA:
 file ='/Users/ilya/metis/week4/metis_project_3/analysis/clean_data.csv'
@@ -43,13 +45,33 @@ param_grid = [
   {'C': [.01, .1, 1, 10], 'gamma': [0.001, 0.0001], 'kernel': ['rbf']},
  ]
 
-svm1 = SVC()
-svm1_grid = GridSearchCV(SVC(), param_grid, cv = 3, scoring = 'accuracy',
-    verbose = 10)
-svm1_grid.fit(x_train, y_train)
-print svm1_grid.best_params_
+svm_grid = GridSearchCV(SVC(), param_grid, cv = 3, scoring = 'accuracy', 
+                        verbose = 10)
+svm_grid.fit(x_train, y_train)
+print svm_grid.best_params_
+print svm_grid.best_score_
 
+# The best SVM has C = .1, kernel = linear
 
+# *********PLOT PREDICTIONS LATER!!!
 
+# Now do analysis for all other models, then plot all their ROC curves on one 
+# plot to compare the models. 
+
+# Models and params to vary:
+# KNN - n_neighbors, weight = ['uniform', 'distance'], leaf_size, p = [1,2]
+# Decision tree - 
+# Random forest -
+# Naive Bayes - 
+# Logistic regression -
+
+param_grid = [{'n_neighbors': [1, 10, 100], #'weight' : ['uniform', 'distance'],
+               'leaf_size' : [10, 100, 1000], 'p' : [1,2]}]
+
+knn_grid = GridSearchCV(KNeighborsClassifier(), param_grid, cv = 3,
+                         scoring = 'accuracy', verbose = 10)
+knn_grid.fit(x_train, y_train)
+print knn_grid.best_params_
+print knn_grid.best_score_
 
 

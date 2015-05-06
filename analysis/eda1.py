@@ -25,7 +25,10 @@ plt.show()
 print data.race.unique()
 print data.workclass.unique()
 print data.marital_status.unique()
+print data.relationship.unique()
 print data.occupation.unique()
+print data.native_country.unique() #Convert to USA yes/no
+data['native_country'] = [1 if x == ' United-States' else 0 for x in data.native_country]
 
 print data.describe()
 data.to_csv('/Users/ilya/metis/week4/metis_project_3/analysis/clean_data.csv',
