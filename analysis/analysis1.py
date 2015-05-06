@@ -14,7 +14,7 @@ from sklearn.cross_validation import train_test_split
 from sklearn.grid_search import GridSearchCV
 from sklearn.neighbors import KNeighborsClassifier
 
-# PREPARE DATA:
+#                           ***PREPARE DATA***
 file ='/Users/ilya/metis/week4/metis_project_3/analysis/clean_data.csv'
 data = pd.read_csv(file, header = 0)
 
@@ -34,12 +34,21 @@ x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = .25)
 # Select several features to use. Can't use all of them bc many are categorical
 # and have many categories.
 
-# Run and Cross-validate model:
+#                       ***Run and Cross-validate models***
 # Stategy: cross-validate lots of combinations of hyperparameters using
 # exhaustive grid search. Hyperparameter combos are stored in param_grid. The
 # measure that cross-validate spits out is accuracy score, because that is the
 # most relevant measure for identifying who has which income.
 
+# Models and their hyperparams to vary:
+# SVM - C, kernel, gamma (only for rbf kernel)
+# KNN - n_neighbors, weight = ['uniform', 'distance'], leaf_size, p = [1,2]
+# Decision tree - 
+# Random forest -
+# Naive Bayes - 
+# Logistic regression -
+
+#### SVM
 param_grid = [
   {'C': [.001, .01, .1, 1, 10], 'kernel': ['linear']},
   {'C': [.01, .1, 1, 10], 'gamma': [0.001, 0.0001], 'kernel': ['rbf']},
@@ -53,19 +62,13 @@ print svm_grid.best_score_
 
 # The best SVM has C = .1, kernel = linear
 
-# *********PLOT PREDICTIONS LATER!!!
 
-# Now do analysis for all other models, then plot all their ROC curves on one 
-# plot to compare the models. 
+# !!!!!! PLOT PREDICTIONS LATER!!!
 
-# Models and params to vary:
-# KNN - n_neighbors, weight = ['uniform', 'distance'], leaf_size, p = [1,2]
-# Decision tree - 
-# Random forest -
-# Naive Bayes - 
-# Logistic regression -
 
-param_grid = [{'n_neighbors': [1, 10, 100], #'weight' : ['uniform', 'distance'],
+
+#### KNN
+param_grid = [{'n_neighbors': [1, 10, 100], 'weights' : ['distance', 'uniform'],
                'leaf_size' : [10, 100, 1000], 'p' : [1,2]}]
 
 knn_grid = GridSearchCV(KNeighborsClassifier(), param_grid, cv = 3,
@@ -73,5 +76,15 @@ knn_grid = GridSearchCV(KNeighborsClassifier(), param_grid, cv = 3,
 knn_grid.fit(x_train, y_train)
 print knn_grid.best_params_
 print knn_grid.best_score_
+
+# The best KNN has n_neighbors = 100, weights = 'distance', leaf_size = 1000, p = 1
+
+
+
+
+
+#### Decision tree
+param_grid = [{}]
+
 
 
