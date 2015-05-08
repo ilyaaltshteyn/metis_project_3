@@ -23,12 +23,16 @@ plt.show()
 
 # Print out unique values of categorical columns to look for nonsense:
 print data.race.unique()
-print data.workclass.unique()
+print data.workclass.unique() # Bin 'without-pay' and 'never-worked'
+data['workclass'] = data.workclass.replace([' Without-pay', ' Never-worked'], 'No-pay/never-worked')
 print data.marital_status.unique()
 print data.relationship.unique()
 print data.occupation.unique()
 print data.native_country.unique() #Convert to USA yes/no
 data['native_country'] = [1 if x == ' United-States' else 0 for x in data.native_country]
+print data.sex.unique()
+data['sex'] = data.sex.replace([' Male', ' Female'], [1,0])
+
 
 print data.describe()
 data.to_csv('/Users/ilya/metis/week4/metis_project_3/analysis/clean_data.csv',
