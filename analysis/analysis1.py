@@ -17,9 +17,10 @@ from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
 from sklearn.feature_selection import RFECV # Does feature selection w/cross-val
 
-#                           ***PREPARE DATA***
+#                          ***PREPARE DATA***
 file ='/Users/ilya/metis/week4/metis_project_3/analysis/clean_data.csv'
 data = pd.read_csv(file, header = 0)
 
@@ -34,7 +35,11 @@ for column in numerical_columns:
 # Cut out 1/10th of data for faster cross-validation:
 data = data.ix[:3999]
 
-# Feature selection and adjustments:
+#                         ***FEATURE SELECTION***
+# Will do this separately for classifiers that return a coef_ weight and ones
+# that don't, and won't do it at all for trees/forests because varying their
+# depth in the grid search that I do later is equivalent to tossing features.
+
 # Drop features that are unlikely to have an effect on the outcome.
 del data['marital_status']
 del data['relationship']
@@ -47,18 +52,10 @@ y = data_dummied[data_dummied.columns[-1]]
 
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = .25)
 
-# Do feature selection with recursive elimination of worst-performing features
-# along with cross-validation. Do this for each of the models, to figure out
-# the optimal combo of features for that model.
-
-logistic = LogisticRegression(verbose = 10)
-logistic_selector = RFECV(logistic, step = 1, cv = 3)
-logistic_selector = logistic_selector.fit(x, y)
-print logistic_selector.n_features_
-print logistic_selector.support_
-print logistic_selector.ranking_
-print logistic_selector.grid_scores_
-print logistic_selector.estimator_
+# First, work with models that return a coef_ weight for each feature.
+# Select features using recursive feature elimination (cross-validate model 
+# with each feature taken out, only keep features that make the cross-val score 
+# stronger):
 
 def plot_feature_count_vs_crossvalscore(grid):
   x = range(1,len(grid) + 1)
@@ -68,10 +65,53 @@ def plot_feature_count_vs_crossvalscore(grid):
   plt.xlabel('Feature count')
   plt.ylabel('Cross validation score')
   plt.show()
+  
+def cut_irrelevant_features(dataframe, support):
+  for index, col in enumerate(dataframe.columns):
+    if support[index] == False:
+      dataframe = dataframe.drop(col, axis = 1)
+  return dataframe
 
-plot_feature_count_vs_crossvalscore(logistic_selector.grid_scores_)
+def cross_val_feature_drop(model, x=x, y=y, step = 1, cv = 3):
+  """Takes a model class, step size, cross-val folds, x (features) matrix and
+  y (outcome var) matrix and returns the optimal number of features, an array
+  of true/false values that represent whether or not each column in x should
+  be included in the model, and a grid of cross-validated model scores, the
+  same length as the max number of features (columns of x), when each feature
+  is included in the model."""
+
+  mod = model
+  mod_selector = RFECV(model, step=step, cv=cv)
+  mod_selector = mod_selector.fit(x, y)
+  nfeatures = mod_selector.n_features_
+  support = mod_selector.support_
+  grid = mod_selector.grid_scores_
+  return nfeatures, support, grid
+
+# -------Apply the functions defined above to models that return coef_ weights:
+
+# LOGISTIC:
+features, support, grid = cross_val_feature_drop( # I defined this function!
+  model = LogisticRegression(verbose = 10))
+
+plot_feature_count_vs_crossvalscore(grid) # I defined this function!
+
+# Redefine feature matrix to make it only include the best features:
+x_logistic = cut_irrelevant_features(x, support)
 
 
+# SVM:
+features, support, grid = cross_val_feature_drop(SVC(kernel = 'linear', verbose = 10))
+
+plot_feature_count_vs_crossvalscore(grid)
+
+x_svm = cut_irrelevant_features(x, support)
+
+
+# Second, work with models that don't return a coef_ weight for each feature.
+# Here, you can't eliminate features based on their weights. So let's see
+
+#
 
 #                       ***Run and Cross-validate models***
 # Stategy: cross-validate lots of combinations of hyperparameters using
@@ -80,12 +120,12 @@ plot_feature_count_vs_crossvalscore(logistic_selector.grid_scores_)
 # most relevant measure for identifying who has which income.
 
 # Models and their hyperparams to vary:
+# Logistic regression -
 # SVM - C, kernel, gamma (only for rbf kernel)
 # KNN - n_neighbors, weight = ['uniform', 'distance'], leaf_size, p = [1,2]
 # Decision tree - criterion = ['gini', 'entropy'], max_depth = [2,4,6,8,10,12], min_samples_split = [2,10,50], min_samples_leaf = [1,5,10]
 # Random forest - n_estimators = [3,9,27], criterion = ['gini', 'entropy'], max_depth = [2,4,6,8], min_samples_split = [2,10,50], min_samples_leaf = [1,5,10], 
 # Naive Bayes - 
-# Logistic regression -
 
 #### SVM
 param_grid = [
