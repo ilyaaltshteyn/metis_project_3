@@ -19,6 +19,8 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
 from sklearn.feature_selection import RFECV # Does feature selection w/cross-val
+from sklearn.ensemble import ExtraTreesClassifier # Does feature selection w/trees
+from sklearn.ensemble import RandomForestClassifier
 
 #                          ***PREPARE DATA***
 file ='/Users/ilya/metis/week4/metis_project_3/analysis/clean_data.csv'
@@ -41,9 +43,6 @@ data = data.ix[:3999]
 # depth in the grid search that I do later is equivalent to tossing features.
 
 # Drop features that are unlikely to have an effect on the outcome.
-del data['marital_status']
-del data['relationship']
-
 data_dummied = pd.get_dummies(data)
 data_dummied = data_dummied.drop(data_dummied.columns[-2], axis = 1)
 
@@ -72,9 +71,9 @@ def cut_irrelevant_features(dataframe, support):
       dataframe = dataframe.drop(col, axis = 1)
   return dataframe
 
-def cross_val_feature_drop(model, x=x, y=y, step = 1, cv = 3):
-  """Takes a model class, step size, cross-val folds, x (features) matrix and
-  y (outcome var) matrix and returns the optimal number of features, an array
+def cross_val_feature_drop(model, x=x_train, y=y_train, step = 1, cv = 5):
+  """Takes a model class, step size, cross-val folds, x_train (features) matrix and
+  y_train (outcome var) matrix and returns the optimal number of features, an array
   of true/false values that represent whether or not each column in x should
   be included in the model, and a grid of cross-validated model scores, the
   same length as the max number of features (columns of x), when each feature
@@ -88,7 +87,7 @@ def cross_val_feature_drop(model, x=x, y=y, step = 1, cv = 3):
   grid = mod_selector.grid_scores_
   return nfeatures, support, grid
 
-# -------Apply the functions defined above to models that return coef_ weights:
+# Apply the functions defined above to models that return coef_ weights:
 
 # LOGISTIC:
 features, support, grid = cross_val_feature_drop( # I defined this function!
@@ -98,7 +97,10 @@ plot_feature_count_vs_crossvalscore(grid) # I defined this function!
 
 # Redefine feature matrix to make it only include the best features:
 x_logistic = cut_irrelevant_features(x, support)
+x_logistic_train, x_logistic_test, y_logistic_train, y_logistic_test = \
+  train_test_split(x_logistic, y, test_size = .25)
 
+print "Logistic model will use %r features" % features
 
 # SVM:
 features, support, grid = cross_val_feature_drop(SVC(kernel = 'linear', verbose = 10))
@@ -106,26 +108,57 @@ features, support, grid = cross_val_feature_drop(SVC(kernel = 'linear', verbose 
 plot_feature_count_vs_crossvalscore(grid)
 
 x_svm = cut_irrelevant_features(x, support)
+x_svm_train, x_svm_test, y_svm_train, y_svm_test = \
+  train_test_split(x_svm, y, test_size = .25)
 
+
+print "SVM will use %r features" % features
 
 # Second, work with models that don't return a coef_ weight for each feature.
-# Here, you can't eliminate features based on their weights. So let's see
+# Here, you can't eliminate features based on their weights. So let's use tree-based
+# feature selection. Basically, you're figuring out how much each feature adds
+# to a random forest and then figuring out feature importances to the tree and
+# dropping unimportant features.
 
-#
+print x.shape
+clf = ExtraTreesClassifier()
+x_tree_selected = clf.fit(x_train,y_train).transform(x)
+x_tree_selected_train, x_tree_selected_test, y_tree_selected_train, y_tree_selected_test = \
+  train_test_split(x_tree_selected, y, test_size = .25)
 
-#                       ***Run and Cross-validate models***
+print clf.feature_importances_
+plt.bar(range(len(clf.feature_importances_)),clf.feature_importances_)
+plt.show()
+print "The tree selection leaves in %r features" % x_tree_selected.shape[1]
+
+
+#                       ***Tune model hyperparameters***
 # Stategy: cross-validate lots of combinations of hyperparameters using
 # exhaustive grid search. Hyperparameter combos are stored in param_grid. The
 # measure that cross-validate spits out is accuracy score, because that is the
 # most relevant measure for identifying who has which income.
 
 # Models and their hyperparams to vary:
-# Logistic regression -
+# Logistic regression - penalty = ['l1', 'l2'], C = [.01, .1, 1, 10, 100], solver = [‘newton-cg’, ‘lbfgs’, ‘liblinear’]
 # SVM - C, kernel, gamma (only for rbf kernel)
 # KNN - n_neighbors, weight = ['uniform', 'distance'], leaf_size, p = [1,2]
 # Decision tree - criterion = ['gini', 'entropy'], max_depth = [2,4,6,8,10,12], min_samples_split = [2,10,50], min_samples_leaf = [1,5,10]
 # Random forest - n_estimators = [3,9,27], criterion = ['gini', 'entropy'], max_depth = [2,4,6,8], min_samples_split = [2,10,50], min_samples_leaf = [1,5,10], 
 # Naive Bayes - 
+
+#### Logistic regression
+param_grid = [{'penalty' : ['l1', 'l2'], 'C' : [.01, .1, 1, 10, 100], 
+  'solver' : ['newton-cg', 'lbfgs', 'liblinear']}]
+
+logistic_grid = GridSearchCV(LogisticRegression(), param_grid, cv = 3,
+                        scoring = 'accuracy', verbose = 10)
+
+logistic_grid.fit(x_logistic_train, y_logistic_train)
+print logistic_grid.best_params_
+print logistic_grid.best_score_
+
+# The best logistic regression has penalty = l1, C = 1, solver = liblinear.
+# Its score is .824
 
 #### SVM
 param_grid = [
@@ -135,12 +168,11 @@ param_grid = [
 
 svm_grid = GridSearchCV(SVC(), param_grid, cv = 3, scoring = 'accuracy', 
                         verbose = 10)
-svm_grid.fit(x_train, y_train)
+svm_grid.fit(x_svm_train, y_svm_train)
 print svm_grid.best_params_
 print svm_grid.best_score_
 
-# The best SVM has C = .1, kernel = linear
-
+# The best SVM has C = .1, kernel = linear. Its score is .825
 
 # !!!!!! PLOT PREDICTIONS LATER!!!
 
@@ -152,11 +184,13 @@ param_grid = [{'n_neighbors': [1, 10, 100], 'weights' : ['distance', 'uniform'],
 
 knn_grid = GridSearchCV(KNeighborsClassifier(), param_grid, cv = 3,
                          scoring = 'accuracy', verbose = 10)
-knn_grid.fit(x_train, y_train)
+knn_grid.fit(x_tree_selected_train, y_tree_selected_train)
 print knn_grid.best_params_
 print knn_grid.best_score_
 
-# The best KNN has n_neighbors = 100, weights = 'uniform', leaf_size = 100, p = 2
+# The best KNN has n_neighbors = 100, weights = 'uniform', leaf_size = 10, p = 2
+# Its score is .811
+
 
 
 
@@ -170,23 +204,29 @@ param_grid = [{
 
 tree_grid = GridSearchCV(DecisionTreeClassifier(), param_grid, cv = 3,
                          scoring = 'accuracy', verbose = 10)
-tree_grid.fit(x_train, y_train)
+tree_grid.fit(x_tree_selected_train, y_tree_selected_train)
 print tree_grid.best_params_
 print tree_grid.best_score_
 
-# The best decision tree has min_samples_split = 50, criterion = 'entropy', max_depth = 4, min_samples_leaf = 5
+# The best decision tree has min_samples_split = 50, criterion = 'gini', 
+# max_depth = 6, min_samples_leaf = 5. Its score is .818
 
 
 
 
 
+#### Random forest
+param_grid = [{'n_estimators' : [3,9,27], 'criterion' : ['gini', 'entropy'], 
+  'max_depth' : [2,4,6,8], 'min_samples_split' : [2,10,50], 'min_samples_leaf' : [1,5,10]}]
 
+forest_grid = GridSearchCV(RandomForestClassifier(), param_grid, cv = 3,
+                           scoring = 'accuracy', verbose = 10)
+forest_grid.fit(x_tree_selected_train, y_tree_selected_train)
+print forest_grid.best_params_
+print forest_grid.best_score_
 
-
-#### 
-
-
-
+# The best random forest has n_estimators = 27, criterion = 'entropy', max_depth = 8, 
+# min_samples_split = 50, min_samples_leaf = 1. Its score is .827.
 
 
 
