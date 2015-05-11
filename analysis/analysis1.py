@@ -28,18 +28,18 @@ from sklearn.metrics import roc_curve, auc
 
 #                          ***PREPARE DATA***
 file ='/Users/ilya/metis/week4/metis_project_3/analysis/clean_data.csv'
-data = pd.read_csv(file, header = 0)
+data_all = pd.read_csv(file, header = 0)
 
 # Standardize continuous features so they're on equal scales:
-numerical_columns = [x for x in data.columns if data[x].dtype == 'int64'][:-1]
+numerical_columns = [x for x in data_all.columns if data_all[x].dtype == 'int64'][:-1]
 for column in numerical_columns:
-    if data[column].name == 'sex':
+    if data_all[column].name == 'sex':
       continue
-    data[column] = data[column].astype(float)
-    data[column] = scale(data[column])
+    data_all[column] = data_all[column].astype(float)
+    data_all[column] = scale(data_all[column])
 
 # Cut out 1/10th of data for faster cross-validation:
-data = data.ix[:3999]
+data = data_all.ix[:3999]
 
 #                         ***FEATURE SELECTION***
 # Will do this separately for classifiers that return a coef_ weight and ones
@@ -94,24 +94,24 @@ def cross_val_feature_drop(model, x=x_train, y=y_train, step = 1, cv = 5):
 # Apply the functions defined above to models that return coef_ weights:
 
 # LOGISTIC:
-features, support, grid = cross_val_feature_drop( # I defined this function!
+features, support_logistic, grid = cross_val_feature_drop( # I defined this function!
   model = LogisticRegression(verbose = 10))
 
 plot_feature_count_vs_crossvalscore(grid) # I defined this function!
 
 # Redefine feature matrix to make it only include the best features:
-x_logistic = cut_irrelevant_features(x, support)
+x_logistic = cut_irrelevant_features(x, support_logistic)
 x_logistic_train, x_logistic_test, y_logistic_train, y_logistic_test = \
   train_test_split(x_logistic, y, test_size = .25)
 
 print "Logistic model will use %r features" % features
 
 # SVM:
-features, support, grid = cross_val_feature_drop(SVC(kernel = 'linear', verbose = 10))
+features, support_svm, grid = cross_val_feature_drop(SVC(kernel = 'linear', verbose = 10))
 
 plot_feature_count_vs_crossvalscore(grid)
 
-x_svm = cut_irrelevant_features(x, support)
+x_svm = cut_irrelevant_features(x, support_svm)
 x_svm_train, x_svm_test, y_svm_train, y_svm_test = \
   train_test_split(x_svm, y, test_size = .25)
 
@@ -126,7 +126,8 @@ print "SVM will use %r features" % features
 
 print x.shape
 clf = ExtraTreesClassifier()
-x_tree_selected = clf.fit(x_train,y_train).transform(x)
+selector = clf.fit(x_train,y_train)
+x_tree_selected = selector.transform(x)
 x_tree_selected_train, x_tree_selected_test, y_tree_selected_train, y_tree_selected_test = \
   train_test_split(x_tree_selected, y, test_size = .25)
 
@@ -164,7 +165,7 @@ print logistic_grid.best_score_
 # The best logistic regression has penalty = l1, C = 1, solver = liblinear.
 # Its score is .824
 
-clf_linreg = LogisticRegression(penalty = 'l1', C = 1, solver = 'liblinear')
+clf_logistic = LogisticRegression(penalty = 'l1', C = 1, solver = 'liblinear')
 
 #### SVM
 param_grid = [
@@ -269,14 +270,14 @@ def roc_plotter(classifier, name, x_train, y_train, x_test, y_test):
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.0])
 
-roc_plotter(clf_linreg, 'linreg', x_logistic_train, y_logistic_train, 
+roc_plotter(clf_logistic, 'logistic', x_logistic_train, y_logistic_train, 
             x_logistic_test, y_logistic_test)
 roc_plotter(clf_svm, 'svm', x_svm_train, y_svm_train, x_svm_test, y_svm_test)
 roc_plotter(clf_svm_rbf, 'svm_rbf', x_tree_selected_train, y_tree_selected_train, 
             x_tree_selected_test, y_tree_selected_test)
 roc_plotter(clf_knn, 'knn', x_tree_selected_train, y_tree_selected_train, 
             x_tree_selected_test, y_tree_selected_test)
-roc_plotter(clf_tree, 'clf', x_tree_selected_train, y_tree_selected_train, 
+roc_plotter(clf_tree, 'tree', x_tree_selected_train, y_tree_selected_train, 
             x_tree_selected_test, y_tree_selected_test)
 roc_plotter(clf_forest, 'forest', x_tree_selected_train, y_tree_selected_train, 
             x_tree_selected_test, y_tree_selected_test)
@@ -286,4 +287,46 @@ plt.ylabel('True Positive Rate')
 plt.title('Receiver operating characteristic example')
 plt.legend()
 plt.show()
+
+# Now use the ENTIRE dataset and calculate cross_val_score for each classifier.
+# I'm going to use the trained models to predict the rest of the dataset and
+# obtain an accuracy score for each.
+data2 = data_all[4000:]
+data2_dummied = pd.get_dummies(data2)
+data2_dummied = data2_dummied.drop(data2_dummied.columns[-2], axis = 1)
+
+x2 = data2_dummied.ix[:,:-1]
+y2 = data2_dummied[data2_dummied.columns[-1]]
+
+# First, build a function to pre-process the data so it's the right shape:
+def preprocess(classifier, supported_features = None, x = x2):
+    if supported_features != None:
+      return cut_irrelevant_features(x, supported_features)
+    else:
+      return selector.transform(x)
+
+x2_logistic = preprocess(clf_logistic, supported_features = support_logistic)
+x2_svm = preprocess(clf_logistic, supported_features = support_svm)
+x2_svm_rbf = preprocess(clf_svm_rbf)
+x2_knn = preprocess(clf_knn)
+x2_tree = preprocess(clf_tree)
+x2_forest = preprocess(clf_forest)
+
+acc_logistic = accuracy_score(y2, clf_logistic.predict(x2_logistic))
+acc_svm = accuracy_score(y2, clf_svm.predict(x2_svm))
+acc_svm_rbf = accuracy_score(y2, clf_svm_rbf.predict(x2_svm_rbf))
+acc_knn = accuracy_score(y2, clf_knn.predict(x2_knn))
+acc_tree = accuracy_score(y2, clf_tree.predict(x2_tree))
+acc_forest = accuracy_score(y2, clf_forest.predict(x2_forest))
+
+print "Accuracy scores of each model against the validation data:\n\
+  logistic: %f \n\
+  svm with linear kernel: %f \n\
+  svm with rbf kernel: %f \n\
+  knn: %f \n\
+  decision tree: %f \n\
+  random forest: %f" % (acc_logistic, acc_svm, acc_svm_rbf, acc_knn, 
+                        acc_tree, acc_forest)
+
+
 
