@@ -21,6 +21,10 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.feature_selection import RFECV # Does feature selection w/cross-val
 from sklearn.ensemble import ExtraTreesClassifier # Does feature selection w/trees
 from sklearn.ensemble import RandomForestClassifier
+import pylab as pl
+from sklearn import svm, datasets
+from sklearn.utils import shuffle
+from sklearn.metrics import roc_curve, auc
 
 #                          ***PREPARE DATA***
 file ='/Users/ilya/metis/week4/metis_project_3/analysis/clean_data.csv'
@@ -160,11 +164,11 @@ print logistic_grid.best_score_
 # The best logistic regression has penalty = l1, C = 1, solver = liblinear.
 # Its score is .824
 
+clf_linreg = LogisticRegression(penalty = 'l1', C = 1, solver = 'liblinear')
+
 #### SVM
 param_grid = [
-  {'C': [.001, .01, .1, 1, 10], 'kernel': ['linear']},
-  {'C': [.01, .1, 1, 10], 'gamma': [0.001, 0.0001], 'kernel': ['rbf']},
- ]
+  {'C': [.001, .01, .1, 1, 10], 'kernel': ['linear']}]
 
 svm_grid = GridSearchCV(SVC(), param_grid, cv = 3, scoring = 'accuracy', 
                         verbose = 10)
@@ -173,7 +177,21 @@ print svm_grid.best_params_
 print svm_grid.best_score_
 
 # The best SVM has C = .1, kernel = linear. Its score is .825
-svm = SVC(C = .1, kernel = 'linear')
+clf_svm = SVC(C = .1, kernel = 'linear', probability = True)
+
+
+####SVM with RBF kernel (use tree-selected data):
+param_grid = [{'C': [.01, .1, 1, 10], 'gamma': [0.001, 0.0001], 
+              'kernel': ['rbf']}]
+
+svm_rbf_grid = GridSearchCV(SVC(), param_grid, cv = 3, scoring = 'accuracy', 
+                        verbose = 10)
+svm_rbf_grid.fit(x_tree_selected_train, y_tree_selected_train)
+print svm_rbf_grid.best_params_
+print svm_rbf_grid.best_score_
+
+# The best SVM with rbf kernel has C = 10, gamma = .001. Its score is .810
+clf_svm_rbf = SVC(C = .1, kernel = 'rbf', gamma = .001, probability = True)
 
 
 #### KNN
@@ -188,7 +206,7 @@ print knn_grid.best_score_
 
 # The best KNN has n_neighbors = 100, weights = 'uniform', leaf_size = 10, p = 2
 # Its score is .811
-knn = KNeighborsClassifier(n_neighbors = 100, weights = 'uniform',
+clf_knn = KNeighborsClassifier(n_neighbors = 100, weights = 'uniform',
                            leaf_size = 10, p = 2)
 
 
@@ -206,7 +224,7 @@ print tree_grid.best_score_
 
 # The best decision tree has min_samples_split = 50, criterion = 'gini', 
 # max_depth = 6, min_samples_leaf = 5. Its score is .818
-tree = DecisionTreeClassifier(min_samples_split = 50, criterion = 'gini',
+clf_tree = DecisionTreeClassifier(min_samples_split = 50, criterion = 'gini',
                               max_depth = 6, min_samples_leaf = 5)
 
 
@@ -222,7 +240,7 @@ print forest_grid.best_score_
 
 # The best random forest has n_estimators = 27, criterion = 'entropy', max_depth = 8, 
 # min_samples_split = 50, min_samples_leaf = 1. Its score is .827.
-forest = RandomForestClassifier(n_estimators = 27, criterion = 'entropy',
+clf_forest = RandomForestClassifier(n_estimators = 27, criterion = 'entropy',
                                 max_depth = 8, min_samples_split = 50,
                                 min_samples_leaf =1)
 
@@ -232,8 +250,40 @@ forest = RandomForestClassifier(n_estimators = 27, criterion = 'entropy',
 # the models. Also print their accuracies to compare. If there's time, plot 
 # heatmaps of where in the data the models do well.
 
+# Plot ROC curves. Remember the data for each model is the features selected
+# data subset for that specific model.
 
+def roc_plotter(classifier, name, x_train, y_train, x_test, y_test):
 
+    # Run classifier
+    probas_ = classifier.fit(x_train, y_train).predict_proba(x_test)
 
+    # Compute ROC curve and area the curve
+    fpr, tpr, thresholds = roc_curve(y_test, probas_[:, 1])
+    roc_auc = auc(fpr, tpr)
+    print "Area under the ROC curve : %f" % roc_auc
 
+    # Plot ROC curve
+    plt.plot(fpr, tpr, label='ROC curve (area = %0.2f) for %s' % (roc_auc, name))
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.0])
+
+roc_plotter(clf_linreg, 'linreg', x_logistic_train, y_logistic_train, 
+            x_logistic_test, y_logistic_test)
+roc_plotter(clf_svm, 'svm', x_svm_train, y_svm_train, x_svm_test, y_svm_test)
+roc_plotter(clf_svm_rbf, 'svm_rbf', x_tree_selected_train, y_tree_selected_train, 
+            x_tree_selected_test, y_tree_selected_test)
+roc_plotter(clf_knn, 'knn', x_tree_selected_train, y_tree_selected_train, 
+            x_tree_selected_test, y_tree_selected_test)
+roc_plotter(clf_tree, 'clf', x_tree_selected_train, y_tree_selected_train, 
+            x_tree_selected_test, y_tree_selected_test)
+roc_plotter(clf_forest, 'forest', x_tree_selected_train, y_tree_selected_train, 
+            x_tree_selected_test, y_tree_selected_test)
+
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver operating characteristic example')
+plt.legend()
+plt.show()
 
