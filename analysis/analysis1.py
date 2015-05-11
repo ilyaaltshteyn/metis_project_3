@@ -144,7 +144,7 @@ print "The tree selection leaves in %r features" % x_tree_selected.shape[1]
 # KNN - n_neighbors, weight = ['uniform', 'distance'], leaf_size, p = [1,2]
 # Decision tree - criterion = ['gini', 'entropy'], max_depth = [2,4,6,8,10,12], min_samples_split = [2,10,50], min_samples_leaf = [1,5,10]
 # Random forest - n_estimators = [3,9,27], criterion = ['gini', 'entropy'], max_depth = [2,4,6,8], min_samples_split = [2,10,50], min_samples_leaf = [1,5,10], 
-# Naive Bayes - 
+# Naive Bayes - nothing to vary.
 
 #### Logistic regression
 param_grid = [{'penalty' : ['l1', 'l2'], 'C' : [.01, .1, 1, 10, 100], 
@@ -173,9 +173,7 @@ print svm_grid.best_params_
 print svm_grid.best_score_
 
 # The best SVM has C = .1, kernel = linear. Its score is .825
-
-# !!!!!! PLOT PREDICTIONS LATER!!!
-
+svm = SVC(C = .1, kernel = 'linear')
 
 
 #### KNN
@@ -190,10 +188,8 @@ print knn_grid.best_score_
 
 # The best KNN has n_neighbors = 100, weights = 'uniform', leaf_size = 10, p = 2
 # Its score is .811
-
-
-
-
+knn = KNeighborsClassifier(n_neighbors = 100, weights = 'uniform',
+                           leaf_size = 10, p = 2)
 
 
 #### Decision tree
@@ -210,9 +206,8 @@ print tree_grid.best_score_
 
 # The best decision tree has min_samples_split = 50, criterion = 'gini', 
 # max_depth = 6, min_samples_leaf = 5. Its score is .818
-
-
-
+tree = DecisionTreeClassifier(min_samples_split = 50, criterion = 'gini',
+                              max_depth = 6, min_samples_leaf = 5)
 
 
 #### Random forest
@@ -227,6 +222,17 @@ print forest_grid.best_score_
 
 # The best random forest has n_estimators = 27, criterion = 'entropy', max_depth = 8, 
 # min_samples_split = 50, min_samples_leaf = 1. Its score is .827.
+forest = RandomForestClassifier(n_estimators = 27, criterion = 'entropy',
+                                max_depth = 8, min_samples_split = 50,
+                                min_samples_leaf =1)
+
+
+#                   ***Compare models against each other***
+# Strategy: first, plot ROC curves of all models on a single plot to compare
+# the models. Also print their accuracies to compare. If there's time, plot 
+# heatmaps of where in the data the models do well.
+
+
 
 
 
