@@ -65,11 +65,11 @@ def plot_feature_count_vs_crossvalscore(grid, name, features):
   y = grid
   plt.plot(x, y, color = 'black', alpha = .6)
   plt.title('Feature count vs cross validation score for %s.\n\
-            %s features will be left in.' % (name,features), size = 17)
-  plt.xlabel('Feature count', size = 16)
-  plt.ylabel('Cross validation score', size = 16)
-  plt.xticks(size = 15)
-  plt.yticks(size = 15)
+            %s features will be left in.' % (name,features), size = 16)
+  plt.xlabel('Feature count', size = 14)
+  plt.ylabel('Cross validation score', size = 14)
+  plt.xticks(size = 12)
+  plt.yticks(size = 12)
   sns.despine()
   plt.show()
   
@@ -129,7 +129,7 @@ print "SVM will use %r features" % features
 # dropping unimportant features.
 
 print x.shape
-clf = ExtraTreesClassifier()
+clf = ExtraTreesClassifier(n_estimators = 500)
 selector = clf.fit(x_train,y_train)
 x_tree_selected = selector.transform(x)
 x_tree_selected_train, x_tree_selected_test, y_tree_selected_train, y_tree_selected_test = \
@@ -140,8 +140,12 @@ plt.bar(range(len(clf.feature_importances_)),clf.feature_importances_,
         color = 'black', alpha = .6)
 plt.title('Feature importances in a random forest used for feature \n\
           selection. %s features will be left in.' % x_tree_selected.shape[1],
-          size = 17)
-plt.xlabel('Each bar is a feature' )
+          size = 16)
+sns.despine()
+plt.xlabel('Each bar is a feature', size = 14)
+plt.ylabel('Feature importance: more is better', size = 14)
+plt.yticks(size = 12)
+plt.xticks(size = 12)
 plt.show()
 print "The tree selection leaves in %r features" % x_tree_selected.shape[1]
 
@@ -274,27 +278,34 @@ def roc_plotter(classifier, name, x_train, y_train, x_test, y_test):
     print "Area under the ROC curve : %f" % roc_auc
 
     # Plot ROC curve
-    plt.plot(fpr, tpr, label='ROC curve (area = %0.2f) for %s' % (roc_auc, name))
-    plt.plot([0, 1], [0, 1], 'k--')
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.0])
+    with sns.color_palette('hls', 8):
+      plt.plot(fpr, tpr, label='AUC = %0.2f for %s' % (roc_auc, name), alpha = .85)
+      plt.plot([0, 1], [0, 1], 'k--', color = 'black', alpha = .05)
+      plt.xlim([0.0, 1.0])
+      plt.ylim([0.0, 1.0])
 
 roc_plotter(clf_logistic, 'logistic', x_logistic_train, y_logistic_train, 
             x_logistic_test, y_logistic_test)
-roc_plotter(clf_svm, 'svm', x_svm_train, y_svm_train, x_svm_test, y_svm_test)
-roc_plotter(clf_svm_rbf, 'svm_rbf', x_tree_selected_train, y_tree_selected_train, 
+roc_plotter(clf_forest, 'forest', x_tree_selected_train, y_tree_selected_train, 
+            x_tree_selected_test, y_tree_selected_test)
+roc_plotter(clf_logistic, 'logistic w/tree selected features', x_tree_selected_train, y_tree_selected_train, 
             x_tree_selected_test, y_tree_selected_test)
 roc_plotter(clf_knn, 'knn', x_tree_selected_train, y_tree_selected_train, 
             x_tree_selected_test, y_tree_selected_test)
+roc_plotter(clf_svm, 'linear svm', x_svm_train, y_svm_train, x_svm_test, y_svm_test)
+roc_plotter(clf_svm, 'linear svm w/tree selected features', x_tree_selected_train, y_tree_selected_train, 
+            x_tree_selected_test, y_tree_selected_test)
+roc_plotter(clf_svm_rbf, 'svm_rbf', x_tree_selected_train, y_tree_selected_train, 
+            x_tree_selected_test, y_tree_selected_test)
 roc_plotter(clf_tree, 'tree', x_tree_selected_train, y_tree_selected_train, 
             x_tree_selected_test, y_tree_selected_test)
-roc_plotter(clf_forest, 'forest', x_tree_selected_train, y_tree_selected_train, 
-            x_tree_selected_test, y_tree_selected_test)
-
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('Receiver operating characteristic example')
-plt.legend()
+plt.xlabel('False Positive Rate', size = 14)
+plt.ylabel('True Positive Rate', size = 14)
+plt.title('Receiver operating characteristic example', size = 15)
+plt.xticks(size = 12)
+plt.yticks(size = 12)
+plt.legend(title = 'Area under ROC curve\nfor each classifier',
+           fontsize = 12, loc= 4)
 plt.show()
 
 # Now use the ENTIRE dataset and calculate cross_val_score for each classifier.
@@ -314,27 +325,48 @@ def preprocess(classifier, supported_features = None, x = x2):
     else:
       return selector.transform(x)
 
+# Need to re-fit the classifiers that used different feature sets above bc
+# they're still fitted with one of the feature sets. After I do that, I preprocess
+# the data and compute accuracy scores.
+clf_logistic.fit(x_logistic_train, y_logistic_train)
 x2_logistic = preprocess(clf_logistic, supported_features = support_logistic)
-x2_svm = preprocess(clf_logistic, supported_features = support_svm)
-x2_svm_rbf = preprocess(clf_svm_rbf)
-x2_knn = preprocess(clf_knn)
-x2_tree = preprocess(clf_tree)
-x2_forest = preprocess(clf_forest)
-
 acc_logistic = accuracy_score(y2, clf_logistic.predict(x2_logistic))
+
+clf_logistic.fit(x_tree_selected_train, y_tree_selected_train)
+x2_logistic_tree_selected = preprocess(clf_logistic)
+acc_logistic_tree_processed = accuracy_score(y2, clf_logistic.predict(x2_logistic_tree_selected))
+
+clf_svm.fit(x_svm_train, y_svm_train)
+x2_svm = preprocess(clf_svm, supported_features = support_svm)
 acc_svm = accuracy_score(y2, clf_svm.predict(x2_svm))
+
+clf_svm.fit(x_tree_selected_train, y_tree_selected_train)
+x2_svm_tree_selected = preprocess(clf_svm)
+acc_svm_tree_processed = accuracy_score(y2, clf_svm.predict(x2_svm_tree_selected))
+
+x2_svm_rbf = preprocess(clf_svm_rbf)
 acc_svm_rbf = accuracy_score(y2, clf_svm_rbf.predict(x2_svm_rbf))
+
+x2_knn = preprocess(clf_knn)
 acc_knn = accuracy_score(y2, clf_knn.predict(x2_knn))
+
+x2_tree = preprocess(clf_tree)
 acc_tree = accuracy_score(y2, clf_tree.predict(x2_tree))
+
+x2_forest = preprocess(clf_forest)
 acc_forest = accuracy_score(y2, clf_forest.predict(x2_forest))
+
 
 print "Accuracy scores of each model against the validation data:\n\
   logistic: %f \n\
-  svm with linear kernel: %f \n\
-  svm with rbf kernel: %f \n\
+  logistic w/tree selected data: %f \n\
+  svm w/linear kernel: %f \n\
+  svm w/linear kernel and tree selected data: %f \n\
+  svm w/rbf kernel: %f \n\
   knn: %f \n\
   decision tree: %f \n\
-  random forest: %f" % (acc_logistic, acc_svm, acc_svm_rbf, acc_knn, 
+  random forest: %f" % (acc_logistic, acc_logistic_tree_processed, acc_svm, 
+                        acc_svm_rbf, acc_knn, acc_svm_tree_processed,
                         acc_tree, acc_forest)
 
 
