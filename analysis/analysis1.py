@@ -60,13 +60,17 @@ x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = .25)
 # with each feature taken out, only keep features that make the cross-val score 
 # stronger):
 
-def plot_feature_count_vs_crossvalscore(grid):
+def plot_feature_count_vs_crossvalscore(grid, name, features):
   x = range(1,len(grid) + 1)
   y = grid
-  plt.plot(x, y)
-  plt.title('Feature count vs cross validation score')
-  plt.xlabel('Feature count')
-  plt.ylabel('Cross validation score')
+  plt.plot(x, y, color = 'black', alpha = .6)
+  plt.title('Feature count vs cross validation score for %s.\n\
+            %s features will be left in.' % (name,features), size = 17)
+  plt.xlabel('Feature count', size = 16)
+  plt.ylabel('Cross validation score', size = 16)
+  plt.xticks(size = 15)
+  plt.yticks(size = 15)
+  sns.despine()
   plt.show()
   
 def cut_irrelevant_features(dataframe, support):
@@ -97,7 +101,7 @@ def cross_val_feature_drop(model, x=x_train, y=y_train, step = 1, cv = 5):
 features, support_logistic, grid = cross_val_feature_drop( # I defined this function!
   model = LogisticRegression(verbose = 10))
 
-plot_feature_count_vs_crossvalscore(grid) # I defined this function!
+plot_feature_count_vs_crossvalscore(grid, 'logistic regression classifier', features) # I defined this function!
 
 # Redefine feature matrix to make it only include the best features:
 x_logistic = cut_irrelevant_features(x, support_logistic)
@@ -109,7 +113,7 @@ print "Logistic model will use %r features" % features
 # SVM:
 features, support_svm, grid = cross_val_feature_drop(SVC(kernel = 'linear', verbose = 10))
 
-plot_feature_count_vs_crossvalscore(grid)
+plot_feature_count_vs_crossvalscore(grid, 'SVM classifier with linear kernel', features) # I defined this function!
 
 x_svm = cut_irrelevant_features(x, support_svm)
 x_svm_train, x_svm_test, y_svm_train, y_svm_test = \
@@ -132,7 +136,12 @@ x_tree_selected_train, x_tree_selected_test, y_tree_selected_train, y_tree_selec
   train_test_split(x_tree_selected, y, test_size = .25)
 
 print clf.feature_importances_
-plt.bar(range(len(clf.feature_importances_)),clf.feature_importances_)
+plt.bar(range(len(clf.feature_importances_)),clf.feature_importances_, 
+        color = 'black', alpha = .6)
+plt.title('Feature importances in a random forest used for feature \n\
+          selection. %s features will be left in.' % x_tree_selected.shape[1],
+          size = 17)
+plt.xlabel('Each bar is a feature' )
 plt.show()
 print "The tree selection leaves in %r features" % x_tree_selected.shape[1]
 
