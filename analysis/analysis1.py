@@ -39,7 +39,7 @@ for column in numerical_columns:
     data_all[column] = scale(data_all[column])
 
 # Cut out 1/10th of data for faster cross-validation:
-data = data_all.ix[:3999]
+data = data_all.ix[:9999]
 
 #                         ***FEATURE SELECTION***
 # Will do this separately for classifiers that return a coef_ weight and ones
@@ -175,10 +175,10 @@ logistic_grid.fit(x_logistic_train, y_logistic_train)
 print logistic_grid.best_params_
 print logistic_grid.best_score_
 
-# The best logistic regression has penalty = l1, C = 1, solver = liblinear.
-# Its score is .824
+# The best logistic regression has penalty = l1, C = 1, solver = newton-cg.
+# Its score is .83
 
-clf_logistic = LogisticRegression(penalty = 'l1', C = 1, solver = 'liblinear')
+clf_logistic = LogisticRegression(penalty = 'l1', C = 1, solver = 'newton-cg')
 
 #### SVM
 param_grid = [
@@ -190,7 +190,7 @@ svm_grid.fit(x_svm_train, y_svm_train)
 print svm_grid.best_params_
 print svm_grid.best_score_
 
-# The best SVM has C = .1, kernel = linear. Its score is .825
+# The best SVM has C = .1, kernel = linear. Its score is .83
 clf_svm = SVC(C = .1, kernel = 'linear', probability = True)
 
 
@@ -204,8 +204,8 @@ svm_rbf_grid.fit(x_tree_selected_train, y_tree_selected_train)
 print svm_rbf_grid.best_params_
 print svm_rbf_grid.best_score_
 
-# The best SVM with rbf kernel has C = 10, gamma = .001. Its score is .810
-clf_svm_rbf = SVC(C = .1, kernel = 'rbf', gamma = .001, probability = True)
+# The best SVM with rbf kernel has C = 10, gamma = .001. Its score is .82
+clf_svm_rbf = SVC(C = 10, kernel = 'rbf', gamma = .001, probability = True)
 
 
 #### KNN
@@ -218,10 +218,10 @@ knn_grid.fit(x_tree_selected_train, y_tree_selected_train)
 print knn_grid.best_params_
 print knn_grid.best_score_
 
-# The best KNN has n_neighbors = 100, weights = 'uniform', leaf_size = 10, p = 2
-# Its score is .811
+# The best KNN has n_neighbors = 100, weights = 'uniform', leaf_size = 100, p = 2
+# Its score is .83
 clf_knn = KNeighborsClassifier(n_neighbors = 100, weights = 'uniform',
-                           leaf_size = 10, p = 2)
+                           leaf_size = 100, p = 2)
 
 
 #### Decision tree
@@ -236,9 +236,9 @@ tree_grid.fit(x_tree_selected_train, y_tree_selected_train)
 print tree_grid.best_params_
 print tree_grid.best_score_
 
-# The best decision tree has min_samples_split = 50, criterion = 'gini', 
-# max_depth = 6, min_samples_leaf = 5. Its score is .818
-clf_tree = DecisionTreeClassifier(min_samples_split = 50, criterion = 'gini',
+# The best decision tree has min_samples_split = 50, criterion = 'entropy', 
+# max_depth = 6, min_samples_leaf = 5. Its score is .83
+clf_tree = DecisionTreeClassifier(min_samples_split = 50, criterion = 'entropy',
                               max_depth = 6, min_samples_leaf = 5)
 
 
@@ -253,10 +253,10 @@ print forest_grid.best_params_
 print forest_grid.best_score_
 
 # The best random forest has n_estimators = 27, criterion = 'entropy', max_depth = 8, 
-# min_samples_split = 50, min_samples_leaf = 1. Its score is .827.
+# min_samples_split = 50, min_samples_leaf = 10. Its score is .827.
 clf_forest = RandomForestClassifier(n_estimators = 27, criterion = 'entropy',
                                 max_depth = 8, min_samples_split = 50,
-                                min_samples_leaf =1)
+                                min_samples_leaf =10)
 
 
 #                   ***Compare models against each other***
@@ -284,6 +284,7 @@ def roc_plotter(classifier, name, x_train, y_train, x_test, y_test):
       plt.xlim([0.0, 1.0])
       plt.ylim([0.0, 1.0])
 
+roc_plotter(clf_svm, 'linear svm', x_svm_train, y_svm_train, x_svm_test, y_svm_test)
 roc_plotter(clf_logistic, 'logistic', x_logistic_train, y_logistic_train, 
             x_logistic_test, y_logistic_test)
 roc_plotter(clf_forest, 'forest', x_tree_selected_train, y_tree_selected_train, 
@@ -292,7 +293,6 @@ roc_plotter(clf_logistic, 'logistic w/tree selected features', x_tree_selected_t
             x_tree_selected_test, y_tree_selected_test)
 roc_plotter(clf_knn, 'knn', x_tree_selected_train, y_tree_selected_train, 
             x_tree_selected_test, y_tree_selected_test)
-roc_plotter(clf_svm, 'linear svm', x_svm_train, y_svm_train, x_svm_test, y_svm_test)
 roc_plotter(clf_svm, 'linear svm w/tree selected features', x_tree_selected_train, y_tree_selected_train, 
             x_tree_selected_test, y_tree_selected_test)
 roc_plotter(clf_svm_rbf, 'svm_rbf', x_tree_selected_train, y_tree_selected_train, 
@@ -311,7 +311,7 @@ plt.show()
 # Now use the ENTIRE dataset and calculate cross_val_score for each classifier.
 # I'm going to use the trained models to predict the rest of the dataset and
 # obtain an accuracy score for each.
-data2 = data_all[4000:]
+data2 = data_all[10000:]
 data2_dummied = pd.get_dummies(data2)
 data2_dummied = data2_dummied.drop(data2_dummied.columns[-2], axis = 1)
 
@@ -368,6 +368,11 @@ print "Accuracy scores of each model against the validation data:\n\
   random forest: %f" % (acc_logistic, acc_logistic_tree_processed, acc_svm, 
                         acc_svm_rbf, acc_knn, acc_svm_tree_processed,
                         acc_tree, acc_forest)
+
+
+
+#                        ***DESCRIPTIVE STATS***
+# data_all is the dataset
 
 
 
