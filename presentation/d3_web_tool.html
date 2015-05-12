@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <title>D3 Basics</title>
+
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+  </head>
+
+  <body>
+
+    <script>
+
+/* Part 1: summary stats. 
+1. Visuals of descriptive stats obtained with SQL. */
+
+var summary_stats = [ {'US natives': [7171,21625] } ]
+    total = (7171+21625);
+
+
+
+
+/*
+2. Scatterplot of education against income.
+3. Bar graph of income > 50k by occupation?
+
+*/
+
+
+/* Strategy: code some dropdown menus that look nice. Each menu represents one
+of the features that is being used to predict the outcome. When the user makes
+a given selection, the variable that corresponds to that feature is set. Once
+all selections are made and the user hits "Predict", the varaibles are sent to
+a function that calculates the logistic regression output and displays the 
+output. */
+

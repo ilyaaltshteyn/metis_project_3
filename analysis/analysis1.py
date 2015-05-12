@@ -373,6 +373,6 @@ print "Accuracy scores of each model against the validation data:\n\
 
 #                        ***DESCRIPTIVE STATS***
 # data_all is the dataset
-
+grouped = data_all.groupby('native_country')
 
 

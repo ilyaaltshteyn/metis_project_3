@@ -1,0 +1,64 @@
+/*
+This is a pSQL script used to obtain descriptive stats about the UCI Adults 
+dataset.
+
+Questions to answer:
+1. How does each of the following affect your chances of being high income?
+- Native country
+- Sex
+- Race (White vs Black vs Asian vs American Indian)
+
+*/
+
+CREATE DATABASE income_data;
+
+\CONNECT income_data;
+
+CREATE TABLE features(
+    age INT,
+    workclass VARCHAR(200),
+    education_num INT,
+    marital_status VARCHAR(200),
+    occupation VARCHAR(200),
+    relationship VARCHAR(200),
+    race VARCHAR(200),
+    sex VARCHAR(200),
+    hours_per_week INT,
+    native_country VARCHAR(200),
+    income_cat VARCHAR(200));
+
+
+COPY features FROM '/Users/ilya/metis/week4/metis_project_3/analysis/clean_data.csv'
+    DELIMITER ',' CSV HEADER;
+
+SELECT * FROM features;
+
+ALTER TABLE features
+ADD income_numerical INT;
+
+UPDATE features
+SET income_numerical = 1 
+WHERE income_cat=' >50K';
+
+--Overall description of dataset:
+SELECT income_cat, COUNT(income_cat) FROM features GROUP BY income_cat;
+--7841 are over 50k, 24325 are under 50k
+
+--Breakdown by specific features:
+SELECT native_country, COUNT(income_cat), income_cat FROM features GROUP BY native_country, income_cat;
+--US natives: 7171 rich, 21625 poor = 24.9% rich
+--Foreigners: 670 rich, 2700 poor = 19.9% rich
+
+SELECT income_cat, COUNT(income_cat), sex FROM features GROUP BY sex, income_cat;
+--Women: 1179 have income over 50k, 9406 have income under 50k, = 11.1% rich
+--Men:   6662 have income over 50k, 14919 have income under 50k, = 31.1% rich
+
+SELECT race, COUNT(income_cat), income_cat FROM features GROUP BY race, income_cat;
+--Black: 387 rich, 2703 poor = 12.5% rich
+--White: 7117 rich, 20350 poor = 25.9% rich
+--Asian: 276 rich, 761 poor = 26.6% rich
+--American Indian: 36 rich, 272 poor = 11.7% rich
+
+
+
+
