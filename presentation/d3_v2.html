@@ -2,18 +2,7 @@
 <meta charset="utf-8">
 <style>
 
-/* Used Bostock's graph guide here: http://bost.ocks.org/mike/bar/3/
-And used Caged's hover tooltip for bargraph from here: http://bl.ocks.org/Caged/6476579*/
-
-.bar {
-  fill: steelblue;
-}
-
-.bar:hover {
-  fill: maroon ;
-}
-
-.axis text {
+body {
   font: 10px sans-serif;
 }
 
@@ -22,6 +11,14 @@ And used Caged's hover tooltip for bargraph from here: http://bl.ocks.org/Caged/
   fill: none;
   stroke: #000;
   shape-rendering: crispEdges;
+}
+
+.bar {
+  fill: #4C84A2;
+}
+
+.bar:hover {
+  fill: #30383D ;
 }
 
 .x.axis path {
@@ -33,7 +30,7 @@ And used Caged's hover tooltip for bargraph from here: http://bl.ocks.org/Caged/
   font-weight: bold;
   padding: 12px;
   background: rgba(0, 0, 0, 0.8);
-  color: #fff;
+  color: #725129;
   border-radius: 2px;
 }
 
@@ -57,15 +54,24 @@ And used Caged's hover tooltip for bargraph from here: http://bl.ocks.org/Caged/
   left: 0;
 }
 
+.line {
+  fill: none;
+  stroke: #161819;
+  stroke-width: 1px;
+  /*shape-rendering: crispEdges;*/
+}
+
 </style>
-<svg class="chart"></svg>
+<body>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
 <script>
 
-var margin = {top: 20, right: 30, bottom: 30, left: 40},
+var margin = {top: 40, right: 20, bottom: 30, left: 40},
     width = 960 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
+
+var formatPercent = d3.format(".0%");
 
 var x = d3.scale.ordinal()
     .rangeRoundBands([0, width], .1);
@@ -73,86 +79,83 @@ var x = d3.scale.ordinal()
 var y = d3.scale.linear()
     .range([height, 0]);
 
-
-
-var yAxis = d3.svg.axis()
-    .scale(y)
-    .orient("left")
-    .ticks(10, "%");
-
-var tip = d3.tip()
-  .attr('class', 'd3-tip')
-  .offset([-10, 0])
-  .html(function(d) {
-    return "<strong>Frequency:</strong> <span style='color:red'>" + d.name + "</span>";
-  })
-
-
-var chart = d3.select(".chart")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-  .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-chart.call(tip);
-
-d3.csv("bardata.csv", type, function(error, data) {
-  x.domain(data.map(function(d,i) { return d.name}));
-    // if (d.name[0] != "b"){ return d.name}    //Enable this to set xtick names as a function of what's in the data.
-    // else { return " ".repeat(i)}; }));
-  y.domain([0, d3.max(data, function(d) { return d.value; })]);
-
 var xAxis = d3.svg.axis()
     .scale(x)
     .tickValues(['From USA', 'Foreign', '', 'Men', 'Women', '', 'White', 
                 'Black', 'Asian', 'Native Am.', '', 'Married', 'Divorced', 
                 '', 'Div. men', 'Div. wom', '', 'Widowers', 'Widows'])
     .orient("bottom");
-    
-  chart.append("g")
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left")
+    .ticks(10)
+    .tickFormat(formatPercent);
+
+var tip = d3.tip()
+  .attr('class', 'd3-tip')
+  .offset([-10, 0])
+  .html(function(d) {
+    return "<span style='color:#fff'>" + d.description + "</span>";
+  })
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+svg.call(tip);
+
+d3.csv("bardata.csv", type, function(error, data) {
+  x.domain(data.map(function(d) { return d.name; }));
+  y.domain([0, d3.max(data, function(d) { return d.value; })]);
+
+  svg.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + height + ")")
       .call(xAxis);
 
-  chart.append("g")
+  svg.append("g")
       .attr("class", "y axis")
       .call(yAxis)
-      .append("text")
+    .append("text")
       .attr("transform", "rotate(-90)")
       .attr("y", 6)
       .attr("dy", ".71em")
       .style("text-anchor", "end")
-      .text("Frequency");
+      .text("value");
 
-  chart.selectAll(".bar")
+  svg.selectAll(".bar")
       .data(data)
     .enter().append("rect")
       .attr("class", "bar")
       .attr("x", function(d) { return x(d.name); })
+      .attr("width", x.rangeBand())
       .attr("y", function(d) { return y(d.value); })
       .attr("height", function(d) { return height - y(d.value); })
-      .attr("width", x.rangeBand());
+      .on('mouseover', tip.show)
+      .on('mouseout', tip.hide)
+
+var line = d3.svg.line()
+  .x(function(d, i) { return x(d.name) + 2.35*i; })
+  .y(200);
+
+var drawLine = svg.append("path")
+    .style("stroke-dasharray", "4,4")
+    .datum(data)
+    .attr("class", "line")
+    .attr("d", line)
+    .data({'value' : 10});
+
 });
 
+
 function type(d) {
-  d.value = +d.value; // coerce to number
+  d.value = +d.value;
   return d;
 }
 
 
+
 </script>
-<!-- /*
-2. Scatterplot of education against income.
-3. Bar graph of income > 50k by occupation?
-
-*/
-
-
-/* Strategy: code some dropdown menus that look nice. Each menu represents one
-of the features that is being used to predict the outcome. When the user makes
-a given selection, the variable that corresponds to that feature is set. Once
-all selections are made and the user hits "Predict", the varaibles are sent to
-a function that calculates the logistic regression output and displays the 
-output. */
-
- -->

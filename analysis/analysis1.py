@@ -39,7 +39,7 @@ for column in numerical_columns:
     data_all[column] = scale(data_all[column])
 
 # Cut out 1/10th of data for faster cross-validation:
-data = data_all.ix[:9999]
+data = data_all.ix[:999]
 
 #                         ***FEATURE SELECTION***
 # Will do this separately for classifiers that return a coef_ weight and ones

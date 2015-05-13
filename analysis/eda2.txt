@@ -12,7 +12,7 @@ Questions to answer:
 
 CREATE DATABASE income_data;
 
-\CONNECT income_data;
+\CONNECT income_data
 
 CREATE TABLE features(
     age INT,
@@ -59,6 +59,13 @@ SELECT race, COUNT(income_cat), income_cat FROM features GROUP BY race, income_c
 --Asian: 276 rich, 761 poor = 26.6% rich
 --American Indian: 36 rich, 272 poor = 11.7% rich
 
+SELECT income_cat, COUNT(income_cat), marital_status FROM features 
+GROUP BY marital_status, income_cat
+ORDER BY marital_status;
+
+SELECT income_cat, COUNT(income_cat), marital_status, sex FROM features 
+GROUP BY marital_status, income_cat, sex
+ORDER BY marital_status, sex;
 
 
 
