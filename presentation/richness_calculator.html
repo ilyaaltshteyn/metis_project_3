@@ -2,60 +2,269 @@
 <html>
 <body>
 <script>
-// Make functions that pull the answers out of the dropdowns.
-var nation = 'usa';
-function getNation(sel) { nation = sel.value; };
-
-var ethnicity = 'white';
-function getEthnicity(sel) { ethnicity = sel.value; };
-
-var work = 'state_gov';
-function getWork(sel) { work = sel.value; };
 
 // Make functions that set predictors as a function of user choice.
-var age = 38.85
-    education_num = 10.12
-    sex = .67
-    hours_per_week = 40.67
     
 
+// Make functions that pull the answers out of the dropdowns.
+var sex = 0;
+function getSex(sel) {
+    sex = sel.value; }
 
-var convertNation = function(input) {
-    if input = 
+var hours_per_week = 0;
+function get_hours_per_week(sel) {
+    rawHours = sel.value; 
+    hours_per_week = (rawHours -40.7)/12.2; }
+
+var age = 0;
+function getAge(sel) { 
+    var rawAge = sel.value; 
+    age = (rawAge-38.8)/13.5; }
+
+var education = 0;
+function getEdu(sel) {
+    rawEdu = sel.value;
+    education = (rawEdu - 10.1)/2.6; }
+
+var workclass_none = 0
+    workclass_federal = 0
+    workclass_local = 0
+    workclass_private = 0
+    workclass_self = 0
+    workclass_state = 0;
+
+function get_workclass(sel) {
+    workclass_none = 0;
+    workclass_federal = 0;
+    workclass_local = 0;
+    workclass_private = 0;
+    workclass_self = 0;
+    workclass_state = 0;
+    var rawworkclass = sel.value;
+    switch (rawworkclass){
+
+        case 'none':
+            workclass_none = 1;
+            break;
+        case 'federal':
+            workclass_federal = 1;
+            break;
+        case 'local':
+            workclass_local = 1;
+            break;
+        case 'private':
+            workclass_private = 1;
+            break;
+        case 'self':
+            workclass_self = 1;
+            break;
+        case 'state':
+            workclass_state = 1;
+            break;
+        default:
+            break; }
+    }
+
+var marital_divorced = 0
+    marital_afspouse = 0
+    marital_civspouse = 0
+    marital_absent = 0
+    marital_unmarried = 0
+    marital_sep = 0
+    marital_widowed = 0;
+
+function get_marital(sel) {
+    marital_divorced = 0;
+    marital_afspouse = 0;
+    marital_civspouse = 0;
+    marital_absent = 0;
+    marital_unmarried = 0;
+    marital_sep = 0;
+    marital_widowed = 0;
+    var raw_marital = sel.value;
+    switch (raw_marital){
+    case 'marital_divorced':
+        marital_divorced = 1;
+        break;
+    case 'marital_afspouse':
+        marital_afspouse = 1;
+        break;
+    case 'marital_civspouse':
+        marital_civspouse = 1;
+        break;
+    case 'marital_absent':
+        marital_absent = 1;
+        break;
+    case 'marital_unmarried':
+        marital_unmarried = 1;
+        break;
+    case 'marital_sep':
+        marital_sep = 1;
+        break;
+    case 'marital_widowed':
+        marital_widowed = 1;
+        break;
+    default:
+        break; }
+}
+
+var occup_none = 0
+    occup_clerical = 0
+    occup_craft = 0
+    occup_exec = 0
+    occup_farm = 0
+    occup_clean = 0
+    occup_other = 0
+    occup_servant = 0
+    occup_specialty = 0
+    occup_sales = 0
+    occup_techsupport = 0
+    occup_transport = 0;
+
+function get_occup(sel) {
+    var raw_occup = sel.value;
+    occup_none = 0;
+    occup_clerical = 0;
+    occup_craft = 0;
+    occup_exec = 0;
+    occup_farm = 0;
+    occup_clean = 0;
+    occup_other = 0;
+    occup_servant = 0;
+    occup_specialty = 0;
+    occup_sales = 0;
+    occup_techsupport = 0;
+    occup_transport = 0;
+    switch(raw_occup){
+        case 'occup_none':
+            occup_none = 1;
+            break;
+        case 'occup_clerical':
+            occup_clerical = 1;
+            break;
+        case 'occup_craft':
+            occup_craft = 1;
+            break;
+        case 'occup_exec':
+            occup_exec = 1;
+            break;
+        case 'occup_farm':
+            occup_farm = 1;
+            break;
+        case 'occup_clean':
+            occup_clean = 1;
+            break;
+        case 'occup_other':
+            occup_other = 1;
+            break;
+        case 'occup_serva':
+            occup_serva = 1;
+            break;
+        case 'occup_specialty':
+            occup_specialty = 1;
+            break;
+        case 'occup_sales':
+            occup_sales = 1;
+            break;
+        case 'occup_techsupport':
+            occup_techsupport = 1;
+            break;
+        case 'occup_transport':
+            occup_transport = 1;
+            break;
+        default:
+            break; }
+}
+
+var relation_husb = 0
+    relation_other = 0
+    relation_child = 0
+    relation_wife = 0;
+
+function get_relationship(sel){
+    relation_husb = 0;
+    relation_other = 0;
+    relation_child = 0;
+    relation_wife = 0;
+    var relation = sel.value;
+    switch(relation){
+        case 'relation_husb':
+            relation_husb = 1;
+            break;
+        case 'relation_other':
+            relation_other = 1;
+            break;
+        case 'relation_child':
+            relation_child = 1;
+            break;
+        case 'relation_wife':
+            relation_wife = 1;
+            break;
+        default:
+            break; }
+}
+
+var race_native = 0
+    race_other = 0;
+
+function getEthnicity(sel){
+    race_native = 0;
+    race_other = 0;
+    var rawRace = sel.value;
+    switch(rawRace){
+        case 'native':
+            race_native =1;
+            break;
+        case 'other':
+            race_other = 1;
+            break;
+        default:
+            break; }
 }
 
 /* Make function that calculates the probability of the outcome
 given the user-selected inputs. It should use a series of switches. */
 
-var betas = [ 3.82661159e-01, 6.87081229e-01, 3.45482187e-01,
-4.67282292e-01, -2.85453527e-01, 4.64710282e-01,
--4.06023106e-01, -1.47634382e-01, -7.89158356e-01,
-0.00000000e+00, -2.87119022e-01, 0.00000000e+00,
-1.72906893e+00, 0.00000000e+00, -4.65126816e-01,
-0.00000000e+00, 0.00000000e+00, -1.15363347e-04,
-0.00000000e+00, 2.99465538e-01, 1.11807490e+00,
--8.08447654e-01, -2.84294451e-01, -3.72038062e-01,
-0.00000000e+00, 6.56338337e-01, 4.10718594e-01,
-6.76892496e-01, 0.00000000e+00, -7.81700710e-02,
-0.00000000e+00, -1.16631622e+00, 1.03220300e+00,
--3.39605926e-01, -8.15279471e-01 ]
-    intercept = -2.73962411;
+// var betas = [ 3.82661159e-01, 6.87081229e-01, 3.45482187e-01,
+// 4.67282292e-01, -2.85453527e-01, 4.64710282e-01,
+// -4.06023106e-01, -1.47634382e-01, -7.89158356e-01,
+// 0.00000000e+00, -2.87119022e-01, 0.00000000e+00,
+// 1.72906893e+00, 0.00000000e+00, -4.65126816e-01,
+// 0.00000000e+00, 0.00000000e+00, -1.15363347e-04,
+// 0.00000000e+00, 2.99465538e-01, 1.11807490e+00,
+// -8.08447654e-01, -2.84294451e-01, -3.72038062e-01,
+// 0.00000000e+00, 6.56338337e-01, 4.10718594e-01,
+// 6.76892496e-01, 0.00000000e+00, -7.81700710e-02,
+// 0.00000000e+00, -1.16631622e+00, 1.03220300e+00,
+// -3.39605926e-01, -8.15279471e-01 ]
+//     intercept = -2.73962411;
 
-var outcome = .25
-    tCalculator = function(features){
-        var t = betas[0]*features[0] + 
-    };
+// var outcome = .25
+//     tCalculator = function(features){
+//         var t = 
+
+    // };
 
 </script>
 
-<select onchange=getNation(this)>
-  <option value="default">Select a national origin</option>
-  <option value="usa">Born in USA</option>
-  <option value="foreign">Born outside of USA</option>
+<select onchange=getAge(this)>
+  <option value="none">Select an age</option>
+  <option value=18>18</option>
+  <option value=25>25</option>
+  <option value=30>30</option>
+  <option value=35>35</option>
+  <option value=40>40</option>
+  <option value=45>45</option>
+  <option value=50>50</option>
+  <option value=55>55</option>
+  <option value=60>60</option>
+  <option value=65>65</option>
+  <option value=70>70</option>
+  <option value=75>75</option>
 </select>
 
 <select onchange=getEthnicity(this)>
-  <option value="default">Select an ethnicity</option>
+  <option value="none">Select an ethnicity</option>
   <option value="white">White</option>
   <option value="black">Black</option>
   <option value="asian">Asian</option>
@@ -64,13 +273,13 @@ var outcome = .25
 </select>
 
 <select onchange=getWork(this)>
-  <option value="default">Select a working class</option>
-  <option value="state_gov">State government</option>
+  <option value="none">Select a working class</option>
+  <option value="state">State government</option>
   <option value="self_empl_inc">Self-employed</option>
   <option value="private">Private company</option>
-  <option value="federal_gov">Federal government</option>
-  <option value="local_gov">Local government</option>
-  <option value="self_empl">Self-employed</option>
+  <option value="federal">Federal government</option>
+  <option value="local">Local government</option>
+  <option value="self">Self-employed</option>
   <option value="no_pay">No pay/never worked</option>
 </select>
 
