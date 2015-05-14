@@ -14,11 +14,11 @@ body {
 }
 
 .bar {
-  fill: #4C84A2;
+  fill: #324959;
 }
 
 .bar:hover {
-  fill: #30383D ;
+  fill: #647785 ;
 }
 
 .x.axis path {
@@ -67,9 +67,9 @@ body {
 <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
 <script>
 
-var margin = {top: 40, right: 20, bottom: 30, left: 40},
+var margin = {top: 40, right: 20, bottom: 85, left: 40},
     width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+    height = 600 - margin.top - margin.bottom;
 
 var formatPercent = d3.format(".0%");
 
@@ -77,13 +77,13 @@ var x = d3.scale.ordinal()
     .rangeRoundBands([0, width], .1);
 
 var y = d3.scale.linear()
-    .range([height, 0]);
+    .range([height, 50]);
 
 var xAxis = d3.svg.axis()
     .scale(x)
     .tickValues(['From USA', 'Foreign', '', 'Men', 'Women', '', 'White', 
-                'Black', 'Asian', 'Native Am.', '', 'Married', 'Divorced', 
-                '', 'Div. men', 'Div. wom', '', 'Widowers', 'Widows'])
+                'Black', 'Asian', 'Native American', '', 'Married', 'Divorced', 
+                '', 'Divorced men', 'Divorced women', '', 'Widowers', 'Widows'])
     .orient("bottom");
 
 var yAxis = d3.svg.axis()
@@ -114,7 +114,14 @@ d3.csv("bardata.csv", type, function(error, data) {
   svg.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + height + ")")
-      .call(xAxis);
+      .call(xAxis)
+      .selectAll("text")  
+            .style("text-anchor", "end")
+            .attr("dx", "-.8em")
+            .attr("dy", ".15em")
+            .attr("transform", function(d) {
+                return "rotate(-65)" 
+                });;
 
   svg.append("g")
       .attr("class", "y axis")
@@ -124,7 +131,7 @@ d3.csv("bardata.csv", type, function(error, data) {
       .attr("y", 6)
       .attr("dy", ".71em")
       .style("text-anchor", "end")
-      .text("value");
+      .text("Percent high-income");
 
   svg.selectAll(".bar")
       .data(data)
@@ -137,16 +144,40 @@ d3.csv("bardata.csv", type, function(error, data) {
       .on('mouseover', tip.show)
       .on('mouseout', tip.hide)
 
-var line = d3.svg.line()
-  .x(function(d, i) { return x(d.name) + 2.35*i; })
-  .y(200);
+//Mean (dotted) line:
+  linedata = [{'description' : '24% of people in the dataset have above-average income.'}];
 
-var drawLine = svg.append("path")
-    .style("stroke-dasharray", "4,4")
-    .datum(data)
-    .attr("class", "line")
-    .attr("d", line)
-    .data({'value' : 10});
+  var line = d3.svg.line()
+    .x(function(d, i) { return x(d.name) + 2.35*i; })
+    .y(y(.243));
+
+  var drawLine = svg.append("path")
+      .style("stroke-dasharray", "4,4")
+      .datum(data)
+      .attr("class", "line")
+      .attr("d", line);
+
+// Invisible box for mouseover:
+  svg.selectAll(".invisibleBox")
+      .data(linedata)
+      .enter()
+      .append("rect")
+      .attr("x", 0)
+      .attr("y", y(.25))
+      .attr("width", width*1.64)
+      .attr("height", 15)
+      .style("opacity", 0)
+      .on('mouseover', tip.show)
+      .on('mouseout', tip.hide);
+
+
+//Title:
+  svg.append("text")
+      .attr("x", (width / 2))             
+      .attr("y", 0 )
+      .attr("text-anchor", "middle")  
+      .style("font-size", "16px") 
+      .text("Your national origin, sex, ethnicity and marital status affect your likelihood of being rich");
 
 });
 
