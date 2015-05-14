@@ -33,7 +33,7 @@ var workclass_none = 0
     workclass_self = 0
     workclass_state = 0;
 
-function get_workclass(sel) {
+function getWork(sel) {
     workclass_none = 0;
     workclass_federal = 0;
     workclass_local = 0;
@@ -73,7 +73,7 @@ var marital_divorced = 0
     marital_sep = 0
     marital_widowed = 0;
 
-function get_marital(sel) {
+function getMarital(sel) {
     marital_divorced = 0;
     marital_afspouse = 0;
     marital_civspouse = 0;
@@ -121,7 +121,7 @@ var occup_none = 0
     occup_techsupport = 0
     occup_transport = 0;
 
-function get_occup(sel) {
+function getOccup(sel) {
     var raw_occup = sel.value;
     occup_none = 0;
     occup_clerical = 0;
@@ -176,33 +176,10 @@ function get_occup(sel) {
             break; }
 }
 
-var relation_husb = 0
-    relation_other = 0
-    relation_child = 0
-    relation_wife = 0;
-
-function get_relationship(sel){
-    relation_husb = 0;
-    relation_other = 0;
-    relation_child = 0;
-    relation_wife = 0;
-    var relation = sel.value;
-    switch(relation){
-        case 'relation_husb':
-            relation_husb = 1;
-            break;
-        case 'relation_other':
-            relation_other = 1;
-            break;
-        case 'relation_child':
-            relation_child = 1;
-            break;
-        case 'relation_wife':
-            relation_wife = 1;
-            break;
-        default:
-            break; }
-}
+var relation_husb = .39
+    relation_other = .02
+    relation_child = .14
+    relation_wife = .06;
 
 var race_native = 0
     race_other = 0;
@@ -225,30 +202,87 @@ function getEthnicity(sel){
 /* Make function that calculates the probability of the outcome
 given the user-selected inputs. It should use a series of switches. */
 
-// var betas = [ 3.82661159e-01, 6.87081229e-01, 3.45482187e-01,
-// 4.67282292e-01, -2.85453527e-01, 4.64710282e-01,
-// -4.06023106e-01, -1.47634382e-01, -7.89158356e-01,
-// 0.00000000e+00, -2.87119022e-01, 0.00000000e+00,
-// 1.72906893e+00, 0.00000000e+00, -4.65126816e-01,
-// 0.00000000e+00, 0.00000000e+00, -1.15363347e-04,
-// 0.00000000e+00, 2.99465538e-01, 1.11807490e+00,
-// -8.08447654e-01, -2.84294451e-01, -3.72038062e-01,
-// 0.00000000e+00, 6.56338337e-01, 4.10718594e-01,
-// 6.76892496e-01, 0.00000000e+00, -7.81700710e-02,
-// 0.00000000e+00, -1.16631622e+00, 1.03220300e+00,
-// -3.39605926e-01, -8.15279471e-01 ]
-//     intercept = -2.73962411;
+var intercept = -2.73962411
+    betas = [ 3.82661159e-01, 6.87081229e-01, 3.45482187e-01,
+    4.67282292e-01, -2.85453527e-01, 4.64710282e-01,
+    -4.06023106e-01, -1.47634382e-01, -7.89158356e-01,
+    0.00000000e+00, -2.87119022e-01, 0.00000000e+00,
+    1.72906893e+00, 0.00000000e+00, -4.65126816e-01,
+    0.00000000e+00, 0.00000000e+00, -1.15363347e-04,
+    0.00000000e+00, 2.99465538e-01, 1.11807490e+00,
+    -8.08447654e-01, -2.84294451e-01, -3.72038062e-01,
+    0.00000000e+00, 6.56338337e-01, 4.10718594e-01,
+    6.76892496e-01, 0.00000000e+00, -7.81700710e-02,
+    0.00000000e+00, -1.16631622e+00, 1.03220300e+00,
+    -3.39605926e-01, -8.15279471e-01 ];
 
-// var outcome = .25
-//     tCalculator = function(features){
-//         var t = 
+var outcome = .25;
 
-    // };
+function logisticCalculator(t){
+    var e = 2.71828;
+    return (1 / (1 + (e ^ (-t))))
+}
+
+var answer = "unknown"
+function tCalculator(){
+        var t = intercept +
+                betas[0]*sex +
+                betas[1]*hours_per_week +
+                betas[2]*age +
+                betas[3]*education +
+                betas[4]*workclass_none +
+                betas[5]*workclass_federal +
+                betas[6]*workclass_local +
+                betas[7]*workclass_private +
+                betas[8]*workclass_self +
+                betas[9]*workclass_state +
+                betas[10]*marital_divorced +
+                betas[11]*marital_afspouse +
+                betas[12]*marital_civspouse +
+                betas[13]*marital_absent +
+                betas[14]*marital_unmarried +
+                betas[15]*marital_sep +
+                betas[16]*marital_widowed +
+                betas[17]*occup_none +
+                betas[18]*occup_clerical +
+                betas[19]*occup_craft +
+                betas[20]*occup_exec +
+                betas[21]*occup_farm +
+                betas[22]*occup_clean +
+                betas[23]*occup_other +
+                betas[24]*occup_servant +
+                betas[25]*occup_specialty +
+                betas[26]*occup_sales +
+                betas[27]*occup_techsupport +
+                betas[28]*occup_transport +
+                betas[29]*relation_husb +
+                betas[30]*relation_other +
+                betas[31]*relation_child +
+                betas[32]*relation_wife +
+                betas[33]*race_native +
+                betas[34]*race_other;
+        answer = logisticCalculator(t)
+    };
 
 </script>
 
+<select onchange=getSex(this)>
+  <option>Sex</option>
+  <option value=1>Male</option>
+  <option value=0>Female</option>
+</select>
+
+<select onchange=get_hours_per_week(this)>
+  <option>Hours worked per week</option>
+  <option value=20>20</option>
+  <option value=30>30</option>
+  <option value=40>40</option>
+  <option value=50>50</option>
+  <option value=60>60</option>
+</select>
+  
 <select onchange=getAge(this)>
-  <option value="none">Select an age</option>
+  <option value="none">Age</option>
   <option value=18>18</option>
   <option value=25>25</option>
   <option value=30>30</option>
@@ -263,24 +297,61 @@ given the user-selected inputs. It should use a series of switches. */
   <option value=75>75</option>
 </select>
 
-<select onchange=getEthnicity(this)>
-  <option value="none">Select an ethnicity</option>
-  <option value="white">White</option>
-  <option value="black">Black</option>
-  <option value="asian">Asian</option>
-  <option value="native">Native American</option>
-  <option value="other">Other</option>
+<select onchange=getEdu(this)>
+  <option>Education</option>
+  <option value=8>Middle school</option>
+  <option value=12>High school</option>
+  <option value=16>College</option>
+  <option value=18>Master's</option>
+  <option value=22>PhD</option>
 </select>
 
 <select onchange=getWork(this)>
-  <option value="none">Select a working class</option>
+  <option>Working class</option>
+  <option value="none">Unemployed</option>
   <option value="state">State government</option>
-  <option value="self_empl_inc">Self-employed</option>
+  <option value="self">Self-employed</option>
   <option value="private">Private company</option>
   <option value="federal">Federal government</option>
   <option value="local">Local government</option>
   <option value="self">Self-employed</option>
   <option value="no_pay">No pay/never worked</option>
+</select>
+
+<select onchange=getMarital(this)>
+  <option>Marital status</option>
+  <option value='marital_divorced'>Divorced</option>
+  <option value='marital_afspouse'>Airforce spouse</option>
+  <option value='marital_civspouse'>Civilian spouse</option>
+  <option value='marital_absent'>Spouse absent</option>
+  <option value='marital_unmarried'>Unmarried</option>
+  <option value='marital_sep'>Separated</option>
+  <option value='marital_widowed'>Widowed</option>
+</select>
+
+<select onchange=getOccup(this)>
+  <option>Occupation category</option>
+  <option value='occup_none'>Unemployed</option>
+  <option value='occup_clerical'>Clerical</option>
+  <option value='occup_craft'>Craft</option>
+  <option value='occup_exec'>Executive</option>
+  <option value='occup_farm'>Farming</option>
+  <option value='occup_clean'>Cleaner</option>
+  <option value='occup_serva'>Servant (yes, this is real)</option>
+  <option value='occup_specialty'>Specialty</option>
+  <option value='occup_sales'>Sales</option>
+  <option value='occup_techsupport'>Tech support</option>
+  <option value='occup_transport'>Transport</option>
+  <option value='occup_other'>Other</option>
+</select>
+
+<select onchange=getEthnicity(this)>
+  <option>Ethnicity</option>
+  <option>White</option>
+  <option>Black</option>
+  <option>Asian</option>
+  <option value="native">Native American</option>
+  <option value="other">Other</option>
 </select>
 
 </body>
