@@ -362,18 +362,17 @@ function tCalculator(){
 <script>
 function changeText()
 {
- ans = String(tCalculator());
- if (ans >= .66){ str_ans = 'is probably higher than $50,000 per year. ' };
+ var ans = tCalculator();
+ var string_ans = "";
+ if (ans >= .66){ str_ans = 'is probably higher than $50,000 per year. '; }
  if (ans <= .33){ str_ans = 'is probably lower than $50,000 per year. '; } 
-    else {str_ans = 'may be lower or higher than %50,000 per year-- can\'t tell for sure with these values. ' };
+    else {str_ans = 'may be lower or higher than %50,000 per year-- can\'t tell for sure with these values. '; }
  document.getElementById('boldStuff').innerHTML = (str_ans + 'The logistic regression output is ' + ans + '.');
 }
 </script>
 <p>A person with the characteristics you entered above probably has an income
-that <b id='boldStuff'> will remain undefined until you click the "Predict income" button above!</b> </p> 
-<input type='button' onclick='changeText();' value='Change Text'/>
-
-<button onclick="tCalculator()">Predict income</button>
+that <b id='boldStuff'> will remain undefined until you click the "Predict income" button below!</b> </p> 
+<input type='button' onclick='changeText();' value='Predict income'/>
 
 <!-- Now add the guage below! -->
 <!-- !! -->
