@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html>
+<head>
+</head>
 <body>
 <script>
 
@@ -223,7 +225,7 @@ function logisticCalculator(t){
     return (1 / (1 + (e ^ (-t))))
 }
 
-var answer = "unknown"
+var answer = 0
 function tCalculator(){
         var t = intercept +
                 betas[0]*sex +
@@ -261,9 +263,11 @@ function tCalculator(){
                 betas[32]*relation_wife +
                 betas[33]*race_native +
                 betas[34]*race_other;
-        answer = logisticCalculator(t)
+        answer = logisticCalculator(t);
+        return (answer);
     };
 
+//Now make the guage:
 </script>
 
 <select onchange=getSex(this)>
@@ -354,5 +358,25 @@ function tCalculator(){
   <option value="other">Other</option>
 </select>
 
+
+<script>
+function changeText()
+{
+ ans = String(tCalculator());
+ if (ans >= .66){ str_ans = 'is probably higher than $50,000 per year. ' };
+ if (ans <= .33){ str_ans = 'is probably lower than $50,000 per year. '; } 
+    else {str_ans = 'may be lower or higher than %50,000 per year-- can\'t tell for sure with these values. ' };
+ document.getElementById('boldStuff').innerHTML = (str_ans + 'The logistic regression output is ' + ans + '.');
+}
+</script>
+<p>A person with the characteristics you entered above probably has an income
+that <b id='boldStuff'> will remain undefined until you click the "Predict income" button above!</b> </p> 
+<input type='button' onclick='changeText();' value='Change Text'/>
+
+<button onclick="tCalculator()">Predict income</button>
+
+<!-- Now add the guage below! -->
+<!-- !! -->
+<!-- !! -->
 </body>
 </html>
